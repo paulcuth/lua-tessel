@@ -16,7 +16,7 @@ I've shared this project now because the main route to execute Lua scripts on th
 git clone git@github.com:paulcuth/lua-tessel.git
 cd lua-tessel
 npm install -g
-lua-tessel run examples/blink.lua
+lua-tessel run examples/blink/blink.lua
 ```
 
 
