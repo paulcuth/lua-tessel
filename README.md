@@ -25,6 +25,22 @@ You can currently run and flash Lua scripts to a USB-connected Tessel device. Fo
 
 
 
+## Built-in modules
+lua-tessel restores the developement environment on the Tessel back to a default Lua 5.1 environment. However there are also two modules that are available in package.preload: `tessel` and `util`.
+
+### tessel
+Allows access to features on the board. The API is described in the [Tessel docs](https://tessel.io/docs/hardwareAPI), but remember to use colon syntax when calling any of the methods.
+
+### util
+Provides some useful functionality that is available in the Tessel runtime. Currently, the following methods are available:
+- `util.clearInterval(ref)` - Stops an interval.
+- `util.clearTimeout(ref)` - Prevents a callback from executing.
+- `ref = util.setInterval(func, delay)` - Execute a callback repeatedly with a specified delay (in ms).
+- `ref = util.setTimeout(func, delay)` - Execute a callback once after a specified delay (in ms).
+
+If you would know of any other functionality in the Tessel runtime that you'd like to see here, create an issue or send a pull request.
+
+
 ## Issues
 Currently there are many missing features and those features that do exist do have known issues. Please report any new issues you find in the [Issue tracker](https://github.com/paulcuth/lua-tessel/issues).
 
