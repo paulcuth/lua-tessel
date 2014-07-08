@@ -1,5 +1,5 @@
 # lua-tessel
-A CLI that enables the scripting of a Tessel device in Lua.
+A CLI that enables the scripting of a [Tessel](https://tessel.io/) device in Lua.
 
 ---
 
