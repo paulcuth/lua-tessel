@@ -49,10 +49,7 @@ Connection.prototype._handleDebugMessage = function (message, logLevel) {
 
 
 Connection.prototype._handleMessage = function (tag, buffer) {
-// 	console.log ('MESSAGE', arguments);
-// MESSAGE { '0': 85,
-//   '1': <Buffer 7b 22 73 69 7a 65 22 3a 20 31 37 30 36 34 34 34 38 7d> }
-
+	// todo
 };
 
 

@@ -27,8 +27,6 @@ Bundler.bundle = function (path, bootScript, filter) {
 			return _this._assembleUserFiles(path, tmpDir, filter);
 		})
 		.then(this._buildTar);
-
-	// return this._assembleBundle(path, bootScript, filter).then(this._buildTar);
 }
 
 
@@ -37,7 +35,7 @@ Bundler.bundle = function (path, bootScript, filter) {
 Bundler._createTempFolder = function () {
 
 	return new Promise(function (resolve, reject) {
-		// temp.track();
+		temp.track();
 
 		temp.mkdir('lua-tessel', function(err, tmpDir) {
 			if (err) reject(err);
@@ -123,7 +121,6 @@ Bundler._buildTar = function (path) {
 			resolve(buffer);
 		});
 
-		// pipe.pipe(fs.createWriteStream('/Users/paulcuth/Dropbox/tessel/lua-tessel/testout.tar'))
 	});
 }
 
