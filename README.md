@@ -38,7 +38,7 @@ Provides some useful functionality that is available in the Tessel runtime. Curr
 - `ref = util.setInterval(func, delay)` - Execute a callback repeatedly with a specified delay (in ms).
 - `ref = util.setTimeout(func, delay)` - Execute a callback once after a specified delay (in ms).
 
-If you would know of any other functionality in the Tessel runtime that you'd like to see here, create an issue or send a pull request.
+If you know of any other functionality in the Tessel runtime that you'd like to see here, please create an issue or send a pull request.
 
 
 ## Issues
