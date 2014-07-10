@@ -2,6 +2,7 @@
 
 var usb = require('usb'),
 	Promise = require('es6-promise').Promise,
+	Connection = require('../connection/Connection'),
 
 	AbstractTransport = require('./AbstractTransport'),
 
@@ -11,9 +12,15 @@ var usb = require('usb'),
 	VENDOR_REQ_OUT = usb.LIBUSB_REQUEST_TYPE_VENDOR | usb.LIBUSB_RECIPIENT_DEVICE | usb.LIBUSB_ENDPOINT_OUT,
 	VENDOR_REQ_IN  = usb.LIBUSB_REQUEST_TYPE_VENDOR | usb.LIBUSB_RECIPIENT_DEVICE | usb.LIBUSB_ENDPOINT_IN,
 
- 	REQ_KILL = 0x10,
+	TRANSFER_SIZE = 4096,
 
-	TRANSFER_SIZE = 4096;
+	POST_MESSAGE = {},
+	CONTROL_TRANSFER = {},
+
+	TAG_METHOD_MAP = {}
+	TAG_METHOD_MAP[Connection.TAG_KILL] = { method: CONTROL_TRANSFER, direction: VENDOR_REQ_OUT };
+	TAG_METHOD_MAP[Connection.TAG_FLASH] = { method: POST_MESSAGE };
+	TAG_METHOD_MAP[Connection.TAG_RUN] = { method: POST_MESSAGE };
 
 
 
@@ -78,8 +85,8 @@ USBTransport.prototype.init = function () {
 				_this._getDeviceInterface()
 			])
 			.then(function (serial) { 
-				_this.emit('debug', 'Connected to device ' + serial);
-				process.on('exit', _this._closeListener);
+				setImmediate(_this.emit.bind(_this, 'debug', 'Connected to device ' + serial));
+				// process.on('exit', _this._closeListener);
 
 				return _this; 
 			})
@@ -229,7 +236,17 @@ USBTransport.prototype._initMessageOutEndpoint = function () {
 
 
 
-USBTransport.prototype.postMessage = function (tag, data) {
+USBTransport.prototype.send = function (tag, data) {
+	var tagData = TAG_METHOD_MAP[tag];
+
+	if (tagData.method === POST_MESSAGE) return this._postMessage(tag, data);
+	return this._controlTransfer(tagData.direction, tag, data);
+};
+
+
+
+
+USBTransport.prototype._postMessage = function (tag, data) {
 	var _this = this,
 		header = new Buffer(8),
 		payload;
@@ -242,9 +259,24 @@ USBTransport.prototype.postMessage = function (tag, data) {
 	payload = Buffer.concat([header, data]);
 
 	return new Promise(function (resolve, reject) {
+
 		_this._endpoints.messagesOut.transferWithZLP(payload, function (err) {
 			if (err) reject(err);
 			resolve();
+		});
+	});
+};
+
+
+
+
+USBTransport.prototype._controlTransfer = function (direction, tag, data) {
+	var _this = this;
+
+	return new Promise(function (resolve, reject) {
+		_this._device.controlTransfer(direction, tag, 0, 0, data, function(err, data) {
+			if (err) reject(err);
+			resolve(data);
 		});
 	});
 };
@@ -256,18 +288,12 @@ USBTransport.prototype.close = function () {
 	var _this = this;
 
 	return new Promise(function (resolve) {
-		_this._device.controlTransfer(VENDOR_REQ_OUT, REQ_KILL, 0, 0, new Buffer(0), function () {
-			// process.removeListener('exit', _this._closeListener);
-			// resolve();
-		});
-
-
-		process.removeListener('exit', _this._closeListener);
+		// process.removeListener('exit', _this._closeListener);
 		
-		if (_this._device) _this._device.close();
 		if (!_this._interface) resolve();
 
 		_this._interface.release(true, function (err) {
+		if (_this._device) _this._device.close();
 			_this._interface = null;
 			resolve();
 		});

@@ -22,7 +22,7 @@ AbstractTransport.prototype.constructor = AbstractTransport;
 
 
 
-AbstractTransport.prototype.postMessage = _notOverwrittenError;
+AbstractTransport.prototype.send = _notOverwrittenError;
 
 
 
