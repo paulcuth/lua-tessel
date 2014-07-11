@@ -12,11 +12,16 @@
 --   util - Utility functions that are too useful to discard.
 --
 
-
 return function (_ENV, _module)
 
 	local tm = _G.require 'tm'
+
+
+	-- The value of the following variable is replaced by the CLI before
+	-- the script is deployed to the device.
 	local BOOT_MOD = '{{boot_mod}}'
+
+
 
 
 	-- From http://lua-users.org/wiki/SplitJoin
@@ -27,6 +32,31 @@ return function (_ENV, _module)
 		return fields
 	end
 
+
+
+	function ipairs (t)
+		local mt = _G.getmetatable(t)
+
+		if _G.type(mt.__ipairs) == 'function' then
+			local iterator, t, index = mt.__ipairs(t)
+			return iterator, t, index
+		end
+
+		return _G.ipairs(t)
+	end
+
+
+
+	function pairs (t)
+		local mt = _G.getmetatable(t)
+
+		if _G.type(mt.__pairs) == 'function' then
+			local iterator, t, index = mt.__pairs(t)
+			return iterator, t, index
+		end
+
+		return _G.pairs(t)
+	end
 
 
 
@@ -40,12 +70,12 @@ return function (_ENV, _module)
 		error = _G.error, 
 		getfenv = _G.getfenv,
 		getmetatable = _G.getmetatable, 
-		ipairs = _G.ipairs, 
+		ipairs = ipairs,
 		load = _G.load,
 		loadfile = _G.loadfile, 
 		loadstring = _G.loadstring, 
 		next = _G.next, 
-		pairs = _G.pairs, 
+		pairs = pairs, 
 		pcall = _G.pcall, 
 		-- print = _G.print, 
 		rawequal = _G.rawequal,
@@ -109,17 +139,30 @@ return function (_ENV, _module)
 		os = lua_G.os,
 		table = lua_G.table,
 		math = lua_G.math,
-		coroutine = lua_G.coroutine,
-
-		tessel = require(lua_G, 'tessel'),
-		util = util
+		coroutine = lua_G.coroutine
 	}
+
 
 	lua_G.package.preload = {
-		bit32 = _G.package.preload.bit32,
-		hw = _G.package.preload.hw,
-	}
 
+		bit32 = _G.package.preload.bit32,
+
+		http = function () 
+			return wrapColonyObject(require(_G.colony.global, 'http')) 
+		end,
+
+		json = function () 
+			return wrapColonyObject(JSON) 
+		end,
+
+		tessel = function () 
+			return wrapColonyObject(require(lua_G, 'tessel'))
+		end,
+		
+		util = function () 
+			return util 
+		end
+	}
 
 
 
@@ -134,6 +177,122 @@ return function (_ENV, _module)
 	mt = _G.getmetatable(nil)
 	mt.__tostring = nil
 
+	-- userdata
+	_G.colony.obj_proto.toString = function () return 'userdata' end
+
+
+
+	-- Remove the context parameter from Colony functions
+	function wrapColonyFunction (f)
+		return function (_, ...)
+
+			-- Wrap any arguments that are passed
+			local args = {...}
+
+			for i, arg in _G.ipairs(args) do
+				if _G.type(arg) == 'table' then 
+					args[i] = wrapColonyObject(arg)
+				end
+			end
+
+			return f(_G.unpack(args))
+		end
+	end
+
+
+
+	-- Wrap Colony objects to remove context from all callbacks contained within
+	function wrapColonyObject (obj) 
+		local result = {}
+		local mt = {}
+
+		mt.__index = function (t, key) 
+
+			-- Translate Lua numbering to JS.
+			if _G.type(key) == 'number' then
+				key = key - 1
+			end
+
+			local value = obj[key]
+			local type = _G.type(value)
+
+			if type == 'table' then
+				-- Wrap nested objects/tables
+				return wrapColonyObject(value)
+
+			elseif type == 'function' then
+
+				-- Wrap function values so that context params can be removed from callbacks
+				return function (head, ...)
+
+					-- If self is passed as first param, substitute in the orginal object
+					if head == result then
+						head = obj
+					end
+
+					-- Iterate over arguments, find callbacks, remove context param
+					local args = {head, ...}
+
+					for i, arg in _G.ipairs(args) do
+						if _G.type(arg) == 'function' then 
+							args[i] = wrapColonyFunction(arg)
+
+						-- elseif _G.type(retval) == 'table' then 
+						-- 	retvals[i] = wrapColonyObject(retval)
+						end
+					end
+
+					-- Invoke function
+					local retvals = { value(_G.unpack(args)) }
+
+					-- Wrap return values
+					for i, retval in _G.ipairs(retvals) do
+						if _G.type(retval) == 'table' then 
+							retvals[i] = wrapColonyObject(retval)
+						end
+					end
+
+					return _G.unpack(retvals)
+				end
+
+
+			elseif key == 'fin' and not _G.rawget(t, key) and obj['end'] then
+				-- If fin property requested, doesn't exist, but end() does, return that instead
+				-- A slight hack to overcome tha fact the the oft used method in JS is reserved word in Lua
+				return obj['end']
+
+			else 
+				-- Return original value
+				return value
+			end
+		end
+
+
+		-- Proxy assignments to original object
+		mt.__newindex = function (t, key, value)
+
+			-- Translate Lua numbering to JS.
+			if _G.type(key) == 'number' then
+				key = key - 1
+			end
+
+			obj[key] = value
+		end
+
+
+		mt.__ipairs = function (t) 
+			return _G.ipairs(obj)
+		end
+
+
+		mt.__pairs = function (t) 
+			return _G.pairs(obj)
+		end
+
+
+		_G.setmetatable(result, mt)
+		return result
+	end
 
 
 
@@ -198,12 +357,20 @@ return function (_ENV, _module)
 		return util
 	end
 
+	function util.setImmediate (func)
+		return setImmediate(_G, func)
+	end
+	
 	function util.setInterval (func, interval)
 		return setInterval(_G, func, interval)
 	end
 	
 	function util.setTimeout (func, timeout)
 		return setTimeout(_G, func, timeout)
+	end
+	
+	function util.clearImmediate (ref)
+		return clearImmediate(_G, ref)
 	end
 	
 	function util.clearInterval (ref)
@@ -214,12 +381,20 @@ return function (_ENV, _module)
 		return clearTimeout(_G, ref)
 	end
 	
+	function util.getTimestamp ()
+		return _G.colony.global.Date.now()
+	end
+	
 
 
 
 	-- Load user script
 
 	function boot () 
+		-- Clear caches to ensure user script is loaded.
+		package.loaded[BOOT_MOD] = nil
+		package.preload[BOOT_MOD] = nil
+
 		require(BOOT_MOD)
 	end
 

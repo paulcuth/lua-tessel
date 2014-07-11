@@ -86,8 +86,6 @@ USBTransport.prototype.init = function () {
 			])
 			.then(function (serial) { 
 				setImmediate(_this.emit.bind(_this, 'debug', 'Connected to device ' + serial));
-				// process.on('exit', _this._closeListener);
-
 				return _this; 
 			})
 		);
@@ -209,7 +207,6 @@ USBTransport.prototype._initMessageInEndpoint = function () {
 				length = buffer.readUInt32LE(0);
 				tag = buffer.readUInt32LE(4);
 				buffer = buffer.slice(8);
-
 				_this.emit('message', tag, buffer);
 			}
 
@@ -230,7 +227,7 @@ USBTransport.prototype._initMessageInEndpoint = function () {
 
 
 USBTransport.prototype._initMessageOutEndpoint = function () {
-		//TODO
+	// todo
 };
 
 
@@ -288,8 +285,6 @@ USBTransport.prototype.close = function () {
 	var _this = this;
 
 	return new Promise(function (resolve) {
-		// process.removeListener('exit', _this._closeListener);
-		
 		if (!_this._interface) resolve();
 
 		_this._interface.release(true, function (err) {
