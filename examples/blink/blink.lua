@@ -3,8 +3,8 @@
 local tessel = require 'tessel'
 local util = require 'util'
 
-local led1 = tessel.led[0]:output(1)
-local led2 = tessel.led[1]:output(0)
+local led1 = tessel.led[1]:output(1)
+local led2 = tessel.led[2]:output(0)
 
 
 util.setInterval(function ()
