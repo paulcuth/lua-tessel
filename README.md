@@ -28,8 +28,9 @@ You can currently `run` scripts on, `push` to and `erase` a USB-connected Tessel
 ## Built-in modules
 `lua-tessel` restores the developement environment on the Tessel back to a default Lua 5.1 environment. However, the following modules have also been added to package.preload and are available to require().
 
-Some thing to note when using these modules:
+Some things to note when using these modules:
 - Always use colon syntax when calling methods on JS modules from Lua.
+- Numerical table keys are shifted to 1-based. Therefore, the LEDs at referenced by `tessel.led[1]` and `tessel.led[2]` and same for ports, pins, etc.
 - `.end()` is used in some of the JS modules, but `t:end()` is invalid syntax in Lua. `t['end']()` can be used, but a `t:fin()` alias method is added for convenience.
 
 ### bit32
@@ -57,7 +58,7 @@ If you know of any other functionality in the Tessel runtime and you'd like to s
 
 
 ## Issues
-Please report any new issues you find in the [Issue tracker](https://github.com/paulcuth/lua-tessel/issues).
+Please report any new issues you find in the [issue tracker](https://github.com/paulcuth/lua-tessel/issues).
 
 If you find a blocking issue, please consider fixing it and submitting a pull request.
 
