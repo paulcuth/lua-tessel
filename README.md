@@ -26,7 +26,11 @@ You can currently run and flash Lua scripts to a USB-connected Tessel device. Fo
 
 
 ## Built-in modules
-lua-tessel restores the developement environment on the Tessel back to a default Lua 5.1 environment. However there are also a few modules that are available to be loaded from package.preload:
+lua-tessel restores the developement environment on the Tessel back to a default Lua 5.1 environment. However, the following modules have also been added to package.preload and are available to require().
+
+Some thing to note when using these modules:
+- When calling methods on JS modules from Lua, always use the colon syntax. 
+- `.end()` is used in some of the JS modules, but `t:end()` is invalid syntax in Lua. `t['end']()` can be used, but a `t:fin()` alias method is added for convenience.
 
 ### bit32
 Bitwise operations as described in the [Lua docs](http://www.lua.org/manual/5.2/manual.html#6.7).
