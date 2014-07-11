@@ -1,11 +1,11 @@
 # lua-tessel
-A CLI that enables the scripting of a [Tessel](https://tessel.io/) device in Lua.
+A CLI for scripting a [Tessel](https://tessel.io/) device in Lua.
 
 ---
 
 
 ## Please note
-This is work in progress and we're not quite there yet. There are issues yet to resolve and the API is likely to change. Please be patient.
+This is work in progress and it's not quite where I want it to be yet. There are issues yet to resolve and the API is liable to change.
 
 I've shared this project now because the main route to executing Lua scripts on the Tessel is working and that feature may be of help to others.
 
@@ -21,15 +21,15 @@ lua-tessel run examples/blink/blink.lua
 
 
 ## Features
-You can currently run and flash Lua scripts to a USB-connected Tessel device. For everything else, including erasing a flashed Lua script, you will need to use the [official Tessel CLI](https://github.com/tessel/cli).
+You can currently `run` scripts on, `push` to and `erase` a USB-connected Tessel device. For everything else you will need to use the [official Tessel CLI](https://github.com/tessel/cli). There are currently no plans to replicate any other functionality of the Tessel CLI.
 
 
 
 ## Built-in modules
-lua-tessel restores the developement environment on the Tessel back to a default Lua 5.1 environment. However, the following modules have also been added to package.preload and are available to require().
+`lua-tessel` restores the developement environment on the Tessel back to a default Lua 5.1 environment. However, the following modules have also been added to package.preload and are available to require().
 
 Some thing to note when using these modules:
-- When calling methods on JS modules from Lua, always use the colon syntax. 
+- Always use colon syntax when calling methods on JS modules from Lua.
 - `.end()` is used in some of the JS modules, but `t:end()` is invalid syntax in Lua. `t['end']()` can be used, but a `t:fin()` alias method is added for convenience.
 
 ### bit32
