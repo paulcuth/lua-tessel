@@ -5,7 +5,7 @@ var Promise = require('es6-promise').Promise,
 
 	Connection = require('./Connection'),
 	USBTransport = require('../transport/USBTransport');
-	Bundler = require('../Bundler'),
+	Bundler = require('../../Bundler'),
 	Logger = require('../../logger/Logger');
 
 
