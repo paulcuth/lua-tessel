@@ -1,11 +1,19 @@
+/**
+ * @fileOverview Abstract transport class.
+ * A transport is a means of communicating with a Tessel device.
+ * @author <a href="mailto:lua-tessel@paulcuth.me.uk">Paul Cuthbertson</a>
+ */
 
 
-var usb = require('usb'),
+var // External dependencies
+	usb = require('usb'),
 	Promise = require('es6-promise').Promise,
-	Connection = require('../connection/Connection'),
 
+	// Local dependencies
+	Connection = require('../connection/Connection'),
 	AbstractTransport = require('./AbstractTransport'),
 
+	// Constannts
 	TESSEL_VID = 0x1d50,
 	TESSEL_PID = 0x6097,
 
@@ -17,14 +25,22 @@ var usb = require('usb'),
 	POST_MESSAGE = {},
 	CONTROL_TRANSFER = {},
 
-	TAG_METHOD_MAP = {}
-	TAG_METHOD_MAP[Connection.TAG_KILL] = { method: CONTROL_TRANSFER, direction: VENDOR_REQ_OUT };
-	TAG_METHOD_MAP[Connection.TAG_FLASH] = { method: POST_MESSAGE };
-	TAG_METHOD_MAP[Connection.TAG_RUN] = { method: POST_MESSAGE };
+	TAG_METHOD_MAP = {};
+
+
+// Init constant map
+TAG_METHOD_MAP[Connection.TAG_KILL] = { method: CONTROL_TRANSFER, direction: VENDOR_REQ_OUT };
+TAG_METHOD_MAP[Connection.TAG_FLASH] = { method: POST_MESSAGE };
+TAG_METHOD_MAP[Connection.TAG_RUN] = { method: POST_MESSAGE };
 
 
 
 
+/**
+ * USB transport layer.
+ * @constructor
+ * @extends AbstractTransport
+ */
 function USBTransport (config) {
 	this._device = null;
 	this.deviceSerial = null;
@@ -38,6 +54,11 @@ USBTransport.prototype.constructor = USBTransport;
 
 
 
+/**
+ * Returns an array of connected Tessel devices.
+ * @static
+ * @returns {Array<Object>} Array of device objects.
+ */
 USBTransport.getDevices = function () {
 	return usb.getDeviceList().filter(function (device) {
 		if (
@@ -53,6 +74,11 @@ USBTransport.getDevices = function () {
 
 
 
+/**
+ * Returns the first Tessel device found.
+ * @static
+ * @returns {Object|undefined} A device object, if a device is present.
+ */
 USBTransport.getFirstDevice = function () {
 	var devices = this.getDevices();
 	if (!devices.length) throw new Error('No Tessel devices found');
@@ -64,6 +90,9 @@ USBTransport.getFirstDevice = function () {
 
 
 
+/**
+ * Initialises the USB transport layer.
+ */
 USBTransport.prototype.init = function () {
 	var _this = this;
 
@@ -96,6 +125,10 @@ USBTransport.prototype.init = function () {
 
 
 
+/**
+ * Retrieves the serial number of the connected Tessel device.
+ * @returns {Promise<string|Error>} A promise to return the device's serial number.
+ */
 USBTransport.prototype._getDeviceSerial = function () {
 	var _this = this,
 		device = this._device;
@@ -111,7 +144,11 @@ USBTransport.prototype._getDeviceSerial = function () {
 
 
 
-USBTransport.prototype._getDeviceInterface = function () {
+/**
+ * Sets up the USB interface.
+ * @returns {Promise<Error>} A promise to set up the interface.
+ */
+ USBTransport.prototype._getDeviceInterface = function () {
 	var _this = this,
 		device = this._device,
 		endpoints = this._endpoints;
@@ -142,7 +179,11 @@ USBTransport.prototype._getDeviceInterface = function () {
 
 
 
-USBTransport.prototype._initEndpoints = function () {
+/**
+ * Initialises all the endpoints in the interface.
+ * @returns {Promise} A promise to initialise the interfaces.
+ */
+ USBTransport.prototype._initEndpoints = function () {
 	return Promise.all([
 		this._initLogEndpoint(), 
 		this._initMessageInEndpoint(), 
@@ -153,6 +194,10 @@ USBTransport.prototype._initEndpoints = function () {
 
 
 
+/**
+ * Initialises the logging endpoint in the interface.
+ * @returns {Promise} A promise to initialise the interface.
+ */
 USBTransport.prototype._initLogEndpoint = function () {
 	var _this = this,
 		endpoint = this._endpoints.log;
@@ -187,6 +232,10 @@ USBTransport.prototype._initLogEndpoint = function () {
 
 
 
+/**
+ * Initialises the incoming message endpoint in the interface.
+ * @returns {Promise} A promise to initialise the interface.
+ */
 USBTransport.prototype._initMessageInEndpoint = function () {
 	var _this = this,
 		endpoint = this._endpoints.messagesIn,
@@ -226,6 +275,10 @@ USBTransport.prototype._initMessageInEndpoint = function () {
 
 
 
+/**
+ * Initialises the outgoing message endpoint in the interface.
+ * @returns {Promise} A promise to initialise the interface.
+ */
 USBTransport.prototype._initMessageOutEndpoint = function () {
 	// todo
 };
@@ -233,6 +286,12 @@ USBTransport.prototype._initMessageOutEndpoint = function () {
 
 
 
+/**
+ * Sends data over the transport layer.
+ * @param {number} tag Unique reference to the type of message.
+ * @param {Buffer} data Data to send.
+ * @returns {Promise<Buffer|Error>} A promise to return data in the response.
+ */
 USBTransport.prototype.send = function (tag, data) {
 	var tagData = TAG_METHOD_MAP[tag];
 
@@ -243,6 +302,12 @@ USBTransport.prototype.send = function (tag, data) {
 
 
 
+/**
+ * Sends data via the message interface.
+ * @param {number} tag Unique reference to the type of message.
+ * @param {Buffer} data Data to send.
+ * @returns {Promise<Buffer|Error>} A promise to return data in the reply.
+ */
 USBTransport.prototype._postMessage = function (tag, data) {
 	var _this = this,
 		header = new Buffer(8),
@@ -267,6 +332,13 @@ USBTransport.prototype._postMessage = function (tag, data) {
 
 
 
+/**
+ * Sends data via control transfer.
+ * @param {number} direction Identifier for the direction of the message.
+ * @param {number} tag Unique reference to the type of message.
+ * @param {Buffer} data Data to send.
+ * @returns {Promise<Buffer|Error>} A promise to return data in the reply.
+ */
 USBTransport.prototype._controlTransfer = function (direction, tag, data) {
 	var _this = this;
 
@@ -281,6 +353,10 @@ USBTransport.prototype._controlTransfer = function (direction, tag, data) {
 
 
 
+/**
+ * Ends communication through the transport layer.
+ * @returns {Promise<Error>} A promise to close the connection.
+ */
 USBTransport.prototype.close = function () {
 	var _this = this;
 

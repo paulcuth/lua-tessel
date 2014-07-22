@@ -1,10 +1,19 @@
+/**
+ * @fileOverview A connection to a Tessel device.
+ * A connection is agnostic to the transport used.
+ * @author <a href="mailto:lua-tessel@paulcuth.me.uk">Paul Cuthbertson</a>
+ */
+
+
+var // External dependencies
+	Promise = require('es6-promise').Promise;
 
 
 
-var Promise = require('es6-promise').Promise;
-
-
-
+/**
+ * A Connection to a Tessel device.
+ * @constructor
+ */
 function Connection () {
 	this.transport = null;
 	this.bundler = null;
@@ -12,6 +21,7 @@ function Connection () {
 }
 
 
+// Static constants
 Connection.TAG_KILL = 0x10;
 Connection.TAG_FLASH = 0x0050;
 Connection.TAG_RUN = 0x0055;
@@ -19,6 +29,10 @@ Connection.TAG_RUN = 0x0055;
 
 
 
+/**
+ * Initialises the connection.
+ * @param {Object} config Configuration to be applied to the connection.
+ */
 Connection.prototype.init = function (config) {
 	this.transport = config.transport || this.transport;
 	this.bundler = config.bundler || this.bundler;
@@ -32,6 +46,11 @@ Connection.prototype.init = function (config) {
 
 
 
+/**
+ * Event handler for incoming debug messages.
+ * @param {string} message Log message.
+ * @param {number} logLevel Weight of the message.
+ */
 Connection.prototype._handleDebugMessage = function (message, logLevel) {
 	if (this.logger) this.logger.log(message, logLevel);
 };
@@ -39,6 +58,11 @@ Connection.prototype._handleDebugMessage = function (message, logLevel) {
 
 
 
+/**
+ * Event handler for incoming interface messages.
+ * @param {number} tag Unique reference to the type of message.
+ * @param {Buffer} data Data received.
+ */
 Connection.prototype._handleMessage = function (tag, buffer) {
 	// todo
 };
@@ -46,6 +70,13 @@ Connection.prototype._handleMessage = function (tag, buffer) {
 
 
 
+/**
+ * Creates and deploys a bundle to run on the Tessel.
+ * @param {string} path Path to bundle.
+ * @param {string} script Script to execute.
+ * @param {RegExp} [filter] Filter for files in the source path.
+ * @returns {Promise<Buffer|Error>} A promise to return data in the Tessel's response.
+ */
 Connection.prototype.run = function (path, script, filter) {
 	var _this = this,
 		_bundle;
@@ -69,6 +100,10 @@ Connection.prototype.run = function (path, script, filter) {
 
 
 
+/**
+ * Stops execution of whatever is running on the Tessel.
+ * @returns {Promise<Buffer|Error>} A promise to return data in the Tessel's response.
+ */
 Connection.prototype.stop = function () {
 	return this.transport.send(Connection.TAG_KILL, new Buffer(0));
 };
@@ -76,6 +111,13 @@ Connection.prototype.stop = function () {
 
 
 
+/**
+ * Creates and deploys a bundle to be flashed to the Tessel.
+ * @param {string} path Path to bundle.
+ * @param {string} script Script to execute.
+ * @param {RegExp} [filter] Filter for files in the source path.
+ * @returns {Promise<Buffer|Error>} A promise to return data in the Tessel's response.
+ */
 Connection.prototype.push = function (path, script, filter) {
 	var _this = this,
 		_bundle;
@@ -93,12 +135,13 @@ Connection.prototype.push = function (path, script, filter) {
 
 
 
+/**
+ * Erased the flash memory on the Tessel.
+ * @returns {Promise<Buffer|Error>} A promise to return data in the Tessel's response.
+ */
 Connection.prototype.erase = function () {
 	var _this = this;
 
-	// return new Promise(function (resolve) {
-	// 	resolve(_this.transport.send(Connection.TAG_FLASH, new Buffer([0xff, 0xff, 0xff, 0xff])));
-	// });
 	return this.stop()
 		.then(function () {
 			return _this.transport.send(Connection.TAG_FLASH, new Buffer([0xff, 0xff, 0xff, 0xff]));
@@ -108,6 +151,10 @@ Connection.prototype.erase = function () {
 
 
 
+/**
+ * Closes the connection.
+ * @returns {Promise<Buffer|Error>} A promise to close the connection.
+ */
 Connection.prototype.close = function () {
 	return this.transport.close();
 };

@@ -1,6 +1,12 @@
+/**
+ * @fileOverview Installer namespace.
+ * Downloads an NPM package, transcodes it to Lua using Colony and creates a tarball.
+ * @author <a href="mailto:lua-tessel@paulcuth.me.uk">Paul Cuthbertson</a>
+ */
 
 
-var Promise = require('es6-promise').Promise,
+var // Dependencies
+	Promise = require('es6-promise').Promise,
 	temp = require('temp'),
 	tar = require('tar-fs'),
 	fs = require('fs-extra'),
@@ -11,13 +17,23 @@ var Promise = require('es6-promise').Promise,
 
 
 
-
+/**
+ * Namespace for the Installer.
+ * @namespace
+ */
 function Installer () {
 }
 
 
 
 
+/**
+ * Installs an NPM package to the current directory.
+ * Installing involves downloading the package, transcoding it to Lua using Colony,
+ * and packing it into a tarball in the current working path.
+ * @param {string} npmModuleName Name of the package in the NPM registry.
+ * @returns {Promise<Error>} A promise to install.
+ */
 Installer.install = function (npmPackageName) {
 	var _this = this,
 		outputFilename = npmPackageName + '.lua.tar';
@@ -40,6 +56,10 @@ Installer.install = function (npmPackageName) {
 
 
 
+/**
+ * Creates a temporary folder to store JS files before transcoding.
+ * @returns {Promise<string|Error>} A promise to return the path ton empty temp folder.
+ */
 Installer._createTempFolder = function () {
 
 	return new Promise(function (resolve, reject) {
@@ -55,6 +75,12 @@ Installer._createTempFolder = function () {
 
 
 
+/**
+ * Downloads an NPM package.
+ * @param {string} name Name of the package in the NPM registry.
+ * @param {string} dest Path to which to download.
+ * @returns {Promise<string|Error>} A promise to return the path in which the package is installed.
+ */
 Installer._downloadPackage = function (name, dest) {
 
 	return new Promise(function (resolve, reject) {
@@ -71,6 +97,11 @@ Installer._downloadPackage = function (name, dest) {
 
 
 
+/**
+ * Transcodes JavaScript files in a given path to Lua, using Colony.
+ * @param {string} path Path to transcode.
+ * @returns {Promise<string|Error>} A promise to return the path which has been transcoded.
+ */
 Installer._transcodePackage = function (path) {
 	var _this = this;
 
@@ -96,6 +127,10 @@ Installer._transcodePackage = function (path) {
 
 
 
+/**
+ * Transcodes a JavaScript file to Lua, using Colony.
+ * @param {string} path Path to the file to be transcoded.
+ */
 Installer._transcodeFile = function (path) {
 	var source, result;
 
@@ -108,6 +143,12 @@ Installer._transcodeFile = function (path) {
 
 
 
+/**
+ * Builds a tarball of a given path.
+ * @param {string} path Path to tarball.
+ * @param {string} outputFilename Filename of the resulting Tarball.
+ * @returns {Promise<Error>} A promise to tarball the path.
+ */
 Installer._buildTar = function (path, outputFilename) {
 	return new Promise(function (resolve, reject) {
 		var fileStream = fs.createWriteStream(outputFilename);

@@ -1,8 +1,14 @@
+/**
+ * @fileOverview Connection factory.
+ * Creates connection to Tessel devices via a chosen transport.
+ * @author <a href="mailto:lua-tessel@paulcuth.me.uk">Paul Cuthbertson</a>
+ */
 
 
+var // External dependencies
+	Promise = require('es6-promise').Promise,
 
-var Promise = require('es6-promise').Promise,
-
+	// Local dependencies
 	Connection = require('./Connection'),
 	USBTransport = require('../transport/USBTransport');
 	Bundler = require('../../Bundler'),
@@ -11,7 +17,12 @@ var Promise = require('es6-promise').Promise,
 
 
 
-function createUSBConnection (logger) {
+/**
+ * Creates a new connection to a Tessel device via USB.
+ * @static
+ * @returns {Array<Connection>} A promise to return a connection object.
+ */
+function createUSBConnection () {
 	var conn = new Connection(),
 		transport = new USBTransport(),
 		bundler = Bundler,
@@ -39,6 +50,7 @@ function createUSBConnection (logger) {
 	// });
 
 }
+
 
 
 
