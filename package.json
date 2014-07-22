@@ -1,36 +1,41 @@
 {
-	"name": "lua-tessel",
-	"description": "A CLI that enables the scripting of a Tessel device in Lua.",
-	"keywords": [
-		"Tessel",
-		"Lua"
-	],
-	"author": {
-		"name": "Paul Cuthbertson",
-		"email": "npm@paulcuth.me.uk"
-	},
-	"main": "./index.js",
-	"bin": {
-		"lua-tessel": "./src/cli.js"
-	},
-	"version": "0.0.2",
-	"homepage": "https://github.com/paulcuth/lua-tessel",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/paulcuth/lua-tessel"
-	},
-	"license": {
-		"type": "MIT"
-	},
-	"bugs": {
-		"url": "https://github.com/paulcuth/lua-tessel/issues"
-	},
-	"dependencies": {
-		"es6-promise": "^1.0.0",
-		"usb": "^0.3.11",
-		"tar": "^0.1.20",
-		"fstream": "^0.1.28",
-		"temp": "^0.8.0",
-		"fs-extra": "^0.10.0"
-	}
+  "name": "lua-tessel",
+  "description": "A CLI that enables the scripting of a Tessel device in Lua.",
+  "keywords": [
+    "Tessel",
+    "Lua"
+  ],
+  "author": {
+    "name": "Paul Cuthbertson",
+    "email": "npm@paulcuth.me.uk"
+  },
+  "main": "./index.js",
+  "bin": {
+    "lua-tessel": "./src/cli.js"
+  },
+  "version": "0.0.2",
+  "homepage": "https://github.com/paulcuth/lua-tessel",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulcuth/lua-tessel"
+  },
+  "license": {
+    "type": "MIT"
+  },
+  "bugs": {
+    "url": "https://github.com/paulcuth/lua-tessel/issues"
+  },
+  "dependencies": {
+    "es6-promise": "^1.0.0",
+    "usb": "^0.3.11",
+    "tar": "^0.1.20",
+    "fstream": "^0.1.28",
+    "temp": "^0.8.0",
+    "fs-extra": "^0.10.0",
+    "node-find-files": "0.0.2",
+    "colony-compiler": "^0.6.13",
+    "tar-fs": "^0.4.1",
+    "tar-stream": "^0.4.4",
+    "npm": "^1.4.21"
+  }
 }

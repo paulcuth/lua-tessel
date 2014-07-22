@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var ConnectionFactory = require('./comms/connection/ConnectionFactory'),
+	Installer = require('./Installer'),
 	pathLib = require('path'),
 
 	command = process.argv[2];
@@ -67,6 +68,13 @@ function erase () {
 
 
 
+function install (npmPackageName) {
+	Installer.install(npmPackageName);
+}
+
+
+
+
 switch (command) {
 	case 'run':
 		run(process.argv[3]);
@@ -80,10 +88,14 @@ switch (command) {
 		erase();
 		break;
 
+	case 'install':
+		install(process.argv[3]);
+		break;
+
 	default: 
 		if (command) console.log('Unknown command: ' + command);
 		console.log('Usage: lua-tessel <command> <filename>');
-		console.log('The only commands available at present are: run, push, erase');
+		console.log('The only commands available at present are: run, push, erase, install');
 }
 
 

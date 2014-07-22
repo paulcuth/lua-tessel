@@ -125,7 +125,7 @@ return function (_ENV, _module)
 		-- loaded = _G.package.loaded,
 		loaders = _G.package.loaders,
 		loadlib = _G.package.loadlib,
-		path = './app/?.lua;'.._G.package.path,
+		path = './app/?.lua;./app/?/index.js;'.._G.package.path,
 		-- preload = _G.package.preload,
 		seeall = _G.package.seeall,
 	}
@@ -201,6 +201,7 @@ return function (_ENV, _module)
 
 
 
+
 	-- Wrap Colony objects to remove context from all callbacks contained within
 	function wrapColonyObject (obj) 
 		local result = {}
@@ -237,10 +238,16 @@ return function (_ENV, _module)
 						if _G.type(arg) == 'function' then 
 							args[i] = wrapColonyFunction(arg)
 
-						-- elseif _G.type(retval) == 'table' then 
-						-- 	retvals[i] = wrapColonyObject(retval)
+						elseif _G.type(arg) == 'table' then 
+							local mt = _G.getmetatable(arg)
+
+							if mt.__source then
+								-- Unwrap wrapped table
+								args[i] = mt.__source
+							end
 						end
 					end
+
 
 					-- Invoke function
 					local retvals = { value(_G.unpack(args)) }
@@ -289,6 +296,9 @@ return function (_ENV, _module)
 			return _G.pairs(obj)
 		end
 
+		
+		mt.__source = obj
+
 
 		_G.setmetatable(result, mt)
 		return result
@@ -323,18 +333,28 @@ return function (_ENV, _module)
 			local success, code = _G.pcall(_G.colony._load, path)
 
 			if success then
-				local func, err = _G.loadstring(code, '@'..modname)
+				local loader, err
 
-				if func == nil then 
-					_G.error(err)
+				if _G.string.sub(path, -3) == '.js' then
+					loader = function ()
+						return wrapColonyObject(_G.colony.run(path, '/'));
+					end
+
+				else 
+					loader, err = _G.loadstring(code, '@'..modname)
+
+					if loader == nil then 
+						_G.error(err)
+					end
+
+					_G.setfenv(loader, lua_G)
 				end
 
-				_G.setfenv(func, lua_G)
 
 				-- Add to package.preload
-				lua_G.package.preload[modname] = func
+				lua_G.package.preload[modname] = loader
 				
-				local mod = func(...)
+				local mod = loader(...)
 				lua_G.package.loaded[modname] = mod
 
 				return mod

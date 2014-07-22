@@ -1,9 +1,13 @@
 
 
 var Promise = require('es6-promise').Promise,
+	pathLib = require('path'),
 	tar = require('tar'),
+	tarfs = require('tar-fs'),
 	temp = require('temp'),
 	fstream = require('fstream'),
+	FileFinder = require("node-find-files"),
+	Promise = require('es6-promise').Promise,
 	fs = require('fs-extra');
 
 
@@ -26,7 +30,10 @@ Bundler.bundle = function (path, bootScript, filter) {
 		.then(function (tmpDir) {
 			return _this._assembleUserFiles(path, tmpDir, filter);
 		})
-		.then(this._buildTar);
+		.then(this._buildTar)
+		.catch(function () {
+			console.log ('BUNDLE ERROR', arguments);
+		});
 }
 
 
@@ -51,7 +58,7 @@ Bundler._assembleBootstrap = function (dest, bootModule) {
 
 	return new Promise(function (resolve, reject) {
 		// Read template
-		fs.readFile(__dirname + '/../template/_start.js', function (err, data) {
+		fs.readFile(__dirname + '/template/_start.js', function (err, data) {
 			if (err) reject(err);
 
 			// Set boot module (user script entry point)
@@ -75,16 +82,46 @@ Bundler._assembleBootstrap = function (dest, bootModule) {
 
 
 Bundler._assembleUserFiles = function (source, dest, filter) {
-	// todo:
-	// filter = filter || /\.(lua|txt|dat)$/;
+	var _this = this;
 
 	return new Promise(function (resolve, reject) {
-		fs.copy(source, dest + '/app', function (err) {
-			if (err) reject(err);
-			resolve(dest);
-		});
+
+		var filter = filter || /\.(lua|txt|dat)$/,
+			modFileFilter = /\.lua\.tar$/,
+			modulePromises = [],
+			finder,
+			options = {
+				rootFolder: source,
+				filterFunction: function () { return true; }
+			};
+
+		finder = new FileFinder(options);
+
+		finder
+			.on('complete', function () {
+				Promise.all(modulePromises).then(resolve.bind(void 0, dest));
+			})
+			.on('error', reject)
+			.on('match', function (path) {
+				var appPath = '/app/' + pathLib.relative(source, path);
+
+				if (modFileFilter.test(path)) {
+					var outstream = tarfs.extract(dest + appPath.substr(0, appPath.length - 8)),
+						promise = new Promise(function (resolve) {
+							outstream.on('finish', resolve);
+							fs.createReadStream(path).pipe(outstream);
+						});
+
+					modulePromises.push(promise);
+
+				} else if (filter.test(path)) {
+					fs.copySync(path, dest + appPath);
+				}
+			})
+			.startSearch();
+
 	});
-}
+};
 
 
 
