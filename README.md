@@ -61,7 +61,7 @@ If you know of any other functionality in the Tessel runtime and you'd like to s
 
 ## Things to note when using JavaScript modules from Lua
 - Always use colon syntax when calling methods on JS modules from Lua.
-- Numerical table keys are shifted to 1-based. Therefore, the LEDs at referenced by `tessel.led[1]` and `tessel.led[2]` and same for pins, GPIO, etc.
+- Numerical table keys are shifted to 1-based. Therefore, the LEDs are referenced by `tessel.led[1]` and `tessel.led[2]` and same for pins, GPIO, etc.
 - `.end()` is used in some of the JS modules, but `t:end()` is invalid syntax in Lua. `t['end']()` can be used, but a `t:fin()` alias method is added for convenience.
 
 
