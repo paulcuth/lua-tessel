@@ -1,12 +1,3 @@
-local tessel = require 'tessel'
-local ambientlib = require 'ambient-attx4'
-local util = require 'util'
-
-local port = tessel.ports['A']
-local ambient = ambientlib:use(port)
-
-]]
-
 local tessel = require "tessel"
 local accellib = require "accel-mma84"
 
