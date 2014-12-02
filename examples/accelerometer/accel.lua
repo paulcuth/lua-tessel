@@ -1,7 +1,6 @@
 local tessel = require "tessel"
 local accellib = require "accel-mma84"
 
-local console = tessel.console
 local accel = accellib:use(tessel.ports.A)
 
 accel:on('ready', function()
